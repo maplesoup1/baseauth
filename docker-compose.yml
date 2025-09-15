@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  secureauth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7001:80"
+      - "7002:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - JWT_SECRET=your-super-secret-jwt-key-here-must-be-at-least-32-characters-long
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=SecureAuth;User Id=sa;Password=YourPassword123!;TrustServerCertificate=true;
+      - ConnectionStrings__Redis=redis:6379
+    depends_on:
+      - sqlserver
+      - redis
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    networks:
+      - secureauth-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourPassword123!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - secureauth-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - secureauth-network
+
+volumes:
+  sqlserver-data:
+  redis-data:
+
+networks:
+  secureauth-network:
+    driver: bridge

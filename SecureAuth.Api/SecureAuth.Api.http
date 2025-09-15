@@ -1,0 +1,6 @@
+@ScamsReportAuth.Api_HostAddress = http://localhost:5048
+
+GET {{ScamsReportAuth.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
